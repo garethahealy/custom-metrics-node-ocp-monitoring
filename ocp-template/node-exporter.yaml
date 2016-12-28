@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  labels:
+    provider: fabric8
+    group: node-exporter
+  name: prometheus-node-exporter
+objects:
+- apiVersion: v1
+  kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: node-exporter
+- apiVersion: v1
+  kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: prometheus-node-exporter-hawkular-agent
+  data:
+    hawkular-openshift-agent: |
+      endpoints:
+      - type: prometheus
+        protocol: "http"
+        port: 9779
+        path: /metrics
+        collection_interval_secs: 5
+        metrics:
+        - name: node_exporter_textfile_exampletestnumber
+          type: counter
+- apiVersion: extensions/v1beta1
+  kind: DaemonSet
+  metadata:
+    labels:
+      provider: fabric8
+      group: node-exporter
+    name: ${APP}
+  spec:
+    replicas: 1
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        annotations:
+          hawkular-openshift-agent: ${HAWKULAR_AGENT_CONFIGMAP}
+        labels:
+          provider: fabric8
+          group: node-exporter
+      spec:
+        containers:
+        - command: ["/bin/node_exporter","-web.listen-address",":9779","-collectors.enabled","textfile","-collector.textfile.directory","/usr/local/node_exporter"]
+          env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          image: prom/node-exporter:v0.13.0
+          imagePullPolicy: IfNotPresent
+          name: ${APP}
+          ports:
+          - containerPort: 9779
+            name: prometheus
+            protocol: TCP
+          volumeMounts:
+            - mountPath: /usr/local/node_exporter
+              name: node-exporter-volume
+        serviceAccountName: node-exporter
+        volumes:
+        - name: node-exporter-volume
+          hostPath:
+            path: /usr/local/node_exporter
+    triggers:
+    - type: ConfigChange
+parameters:
+- name: APP
+  value: prometheus-node-exporter
+- name: HAWKULAR_AGENT_CONFIGMAP
+  value: prometheus-node-exporter-hawkular-agent
