@@ -1,0 +1,6 @@
+sudo: required
+dist: trusty
+services:
+  - docker
+script:
+  - docker pull prom/node-exporter:v0.13.0
