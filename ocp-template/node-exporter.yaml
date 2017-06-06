@@ -16,7 +16,7 @@ objects:
   kind: ConfigMap
   apiVersion: v1
   metadata:
-    name: prometheus-node-exporter-hawkular-agent
+    name: ${APP}-hawkular-agent
   data:
     hawkular-openshift-agent: |
       endpoints:
@@ -41,8 +41,6 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations:
-          hawkular-openshift-agent: ${HAWKULAR_AGENT_CONFIGMAP}
         labels:
           provider: fabric8
           group: node-exporter
@@ -64,15 +62,18 @@ objects:
           volumeMounts:
             - mountPath: /usr/local/node_exporter
               name: node-exporter-volume
+            - mountPath: /run/configmaps/garethahealy.com/hawkular-agent
+              name: ${APP}-hawkular-agent
         serviceAccountName: node-exporter
         volumes:
         - name: node-exporter-volume
           hostPath:
             path: /usr/local/node_exporter
+        - name: hawkular-openshift-agent
+          configMap:
+            name: ${APP}-hawkular-agent
     triggers:
     - type: ConfigChange
 parameters:
 - name: APP
   value: prometheus-node-exporter
-- name: HAWKULAR_AGENT_CONFIGMAP
-  value: prometheus-node-exporter-hawkular-agent
