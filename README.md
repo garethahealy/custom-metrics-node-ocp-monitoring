@@ -52,8 +52,7 @@ As the node-exporter runs under the 'privileged' SCC (a requirement of host moun
 
 Finally, we want to verify that the Hawkular OpenShift Agent is collecting the metrics:
 
-    AGENT_POD=$(oc get pod -n openshift-infra | grep hawkular-openshift-agent | cut -d' ' -f1)
-    oc logs -n openshift-infra -f $AGENT_POD
+    oc logs -n openshift-infra $(oc get pod -n openshift-infra -oname -lmetrics-infra=agent)
     
 ![alt text](https://github.com/garethahealy/custom-metrics-node-ocp-monitoring/raw/master/screenshots/agent_log.png "Agent Log")
     
