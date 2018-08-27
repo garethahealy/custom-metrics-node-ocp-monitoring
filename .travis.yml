@@ -1,6 +1,6 @@
 sudo: required
 dist: trusty
 services:
-  - docker
+- docker
 script:
-  - docker pull prom/node-exporter:v0.13.0
+- docker pull prom/node-exporter:v0.13.0
